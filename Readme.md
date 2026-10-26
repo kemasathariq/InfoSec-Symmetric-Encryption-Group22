@@ -1,11 +1,23 @@
-# Mobile Banking BE (tahap 1: tanpa enkripsi)
+# Mobile Banking (tahap 2: frontend; enkripsi belum aktif)
 
 Flask + SQLite. Fokus: pendaftaran (data pribadi + KTP + dokumen kantor + video selfie), login, dan
 pengambilan kembali data milik sendiri.
 
+Antarmuka web tersedia di `http://127.0.0.1:5000/` setelah server dijalankan. Frontend disajikan
+oleh Flask dan menggunakan endpoint API di bawah; tidak memerlukan layanan frontend terpisah.
+Enkripsi belum aktif pada tahap ini, sesuai status hook backend.
+
+Landing page editorial Lumio tersedia di `http://127.0.0.1:5000/lumio` sebagai halaman visual terpisah.
+
+## Antarmuka web
+- Buka rekening lewat formulir tiga langkah: data diri, unggah tiga dokumen, dan keamanan/persetujuan PDP.
+- Masuk dengan email dan kata sandi, lalu lihat profil, saldo, nomor rekening, dan dokumen pribadi.
+- Unduh dokumen melalui sesi aktif; backend memverifikasi SHA-256 sebelum mengirim file.
+- Token sesi disimpan selama tab browser aktif dan dihapus saat logout.
+
 ## Jalankan
-    pip install -r requirements.txt
-    python app.py            # http://127.0.0.1:5000
+    pip install -r Requirements.txt
+    python BE\App.py         # http://127.0.0.1:5000
 
 ## Endpoint
 | Method | Path | Auth | Keterangan |
