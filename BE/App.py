@@ -10,11 +10,12 @@ from datetime import date, datetime, timedelta, timezone
 from functools import wraps
 from pathlib import Path
 
-from flask import Flask, g, jsonify, request, send_file
+from flask import Flask, g, jsonify, render_template, request, send_file
 from werkzeug.security import check_password_hash, generate_password_hash
 
-import db
-import hooks
+import ciphers
+import DB as db
+import Hooks as hooks
 
 BASE_DIR = Path(__file__).resolve().parent
 STORAGE_DIR = Path(os.environ.get("STORAGE_DIR", BASE_DIR / "storage"))
@@ -29,7 +30,11 @@ ALLOWED_FILES = {
 EMAIL_RE = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
 PHONE_RE = re.compile(r"^(\+62|62|0)8\d{8,12}$")
 
-app = Flask(__name__)
+app = Flask(
+    __name__,
+    template_folder=str(BASE_DIR.parent / "FE" / "templates"),
+    static_folder=str(BASE_DIR.parent / "FE" / "static"),
+)
 app.config["MAX_CONTENT_LENGTH"] = 60 * 1024 * 1024
 app.config["DB_PATH"] = os.environ.get("DB_PATH", str(BASE_DIR / "mbanking.db"))
 db.init_db(app)
@@ -50,6 +55,11 @@ def lookup_hash(value: str) -> str:
 
 def err(message, status, **extra):
     return jsonify({"error": message, **extra}), status
+
+
+@app.errorhandler(ciphers.IntegrityError)
+def integrity_failed(_e):
+    return err("Integrity check failed (data corrupted or modified)", 500)
 
 
 def require_auth(fn):
@@ -127,6 +137,16 @@ def new_account_number(conn):
 
 
 # ---------- routes ----------
+@app.get("/")
+def index():
+    return render_template("index.html")
+
+
+@app.get("/lumio")
+def lumio():
+    return render_template("lumio.html")
+
+
 @app.get("/api/health")
 def health():
     return jsonify({"status": "ok"})
@@ -151,7 +171,7 @@ def register():
         cur = conn.execute(
             "INSERT INTO users (email_lookup, nik_lookup, password_hash, profile, cipher,"
             " account_number, consent_at, created_at) VALUES (?,?,?,?,?,?,?,?)",
-            (email_h, nik_h, generate_password_hash(password), b"", hooks.CURRENT_CIPHER,
+            (email_h, nik_h, generate_password_hash(password), b"", hooks.cipher_for("profile"),
              new_account_number(conn), ts, ts),
         )
         uid = cur.lastrowid
@@ -170,7 +190,7 @@ def register():
                 " sha256, cipher, created_at) VALUES (?,?,?,?,?,?,?,?,?)",
                 (uid, kind, name, mimetypes.guess_type(name)[0] or "application/octet-stream",
                  str(path), len(data), hashlib.sha256(data).hexdigest(),
-                 hooks.CURRENT_CIPHER, ts),
+                 hooks.cipher_for(kind), ts),
             )
         conn.commit()
     except Exception:

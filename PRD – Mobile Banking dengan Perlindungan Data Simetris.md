@@ -1,12 +1,12 @@
 # PRD – Mobile Banking dengan Perlindungan Data Simetris
 
-Versi 1.0 · 27 Oktober 2026 · Status: Draft · Tahap saat ini: 1 (backend tanpa enkripsi)
+Versi 1.0 · 27 Oktober 2026 · Status: Draft · Tahap saat ini: 2 (frontend; enkripsi belum aktif)
 
 ## 1. Ringkasan
 
 Produk ini adalah aplikasi web mobile banking sederhana untuk nasabah baru yang mendaftar secara digital (onboarding e-KYC). Saat mendaftar, nasabah mengunggah data pribadi, scan KTP, dokumen kantor (misalnya slip gaji), dan video selfie. Semua data itu sensitif, sehingga aplikasi harus menyimpannya dalam bentuk terlindungi dan hanya mengembalikannya, utuh, kepada pemiliknya yang sudah terautentikasi.
 
-Aplikasi ini dibuat untuk tugas proyek implementasi enkripsi simetris (Assignment 1, kelompok 4 orang). Perlindungan data dilakukan dengan tiga cipher, yaitu AES, DES, dan RC4, lalu ketiganya dibandingkan secara terukur untuk skenario ini. Dokumen ini mencakup seluruh proyek. Tahap 1 (backend tanpa enkripsi) sudah selesai dan teruji, sedangkan enkripsi dan evaluasi dikerjakan bertahap.
+Aplikasi ini dibuat untuk tugas proyek implementasi enkripsi simetris (Assignment 1, kelompok 4 orang). Perlindungan data dilakukan dengan tiga cipher, yaitu AES, DES, dan RC4, lalu ketiganya dibandingkan secara terukur untuk skenario ini. Dokumen ini mencakup seluruh proyek. Tahap 1 (backend tanpa enkripsi) dan tahap 2 (frontend web) sudah selesai; enkripsi dan evaluasi dikerjakan bertahap.
 
 ## 2. Latar belakang dan skenario
 
@@ -198,7 +198,7 @@ Pertanyaan yang dijawab: cipher mana yang paling cocok untuk data pendaftaran na
 | Tahap | Isi | Status |
 | --- | --- | --- |
 | 1 | Backend Flask tanpa enkripsi (registrasi, login, profil, unduh dokumen, hook enkripsi) | Selesai |
-| 2 | Frontend web (form pendaftaran multi-langkah, login, profil) | Berikutnya |
+| 2 | Frontend web (form pendaftaran multi-langkah, login, profil, dokumen) | Selesai |
 | 3 | Implementasi AES di `hooks.py` beserta uji round-trip | Rencana |
 | 4 | Implementasi DES dan RC4, pemilihan cipher lewat konfigurasi | Rencana |
 | 5 | Skrip benchmark, pengumpulan data, analisis | Rencana |
