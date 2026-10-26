@@ -1,11 +1,11 @@
-# Mobile Banking BE (tahap 1: tanpa enkripsi)
+# Mobile Banking dengan Perlindungan Data Simetris (AES / DES / RC4)
 
 Flask + SQLite. Fokus: pendaftaran (data pribadi + KTP + dokumen kantor + video selfie), login, dan
 pengambilan kembali data milik sendiri.
 
 ## Jalankan
     pip install -r requirements.txt
-    python app.py            # http://127.0.0.1:5000
+    python App.py            # http://127.0.0.1:5000
 
 ## Endpoint
 | Method | Path | Auth | Keterangan |
@@ -29,14 +29,23 @@ pengambilan kembali data milik sendiri.
     curl localhost:5000/api/me -H "Authorization: Bearer <token>"
     curl -OJ localhost:5000/api/me/documents/ktp -H "Authorization: Bearer <token>"
 
-## Tempat memasang enkripsi nanti
-- `hooks.py`: `protect()` / `unprotect()` dipanggil untuk profil JSON dan setiap file. Isi dengan AES/DES/RC4.
-- Kolom `cipher` di tabel `users` dan `documents` sudah ada (sekarang `none`) untuk mencatat cipher yang dipakai.
-- Kolom `sha256` di `documents` = hash file asli, dipakai memverifikasi data kembali utuh setelah dekripsi.
-- `email_lookup` dan `nik_lookup` (HMAC) dipakai untuk login/cek duplikat, jadi email & NIK di dalam
-  profil bisa dienkripsi tanpa merusak pencarian.
+## Enkripsi
+- `BE/Hooks.py`: `protect()` / `unprotect()` untuk profil JSON dan setiap file. Tiap jenis data punya cipher sendiri (profil dan video AES, dokumen RC4, KTP DES). Ubah dengan `CIPHER_POLICY`, atau paksa satu cipher dengan `CIPHER=aes|des|rc4`.
+- `BE/ciphers.py`: AES-256-GCM, DES-CTR + HMAC-SHA256, RC4 (drop 3072) + HMAC-SHA256. Kunci per objek dari `MASTER_KEY` via HKDF. Tanpa ECB.
+- Kolom `cipher` mencatat cipher, `sha256` memverifikasi data kembali utuh.
+- `email_lookup` dan `nik_lookup` (HMAC) untuk login dan cek duplikat.
+
+## Dokumen
+- `docs/DATA_CLASSIFICATION.md`: data privat menurut UU PDP dan GDPR.
+- `docs/CRYPTO_DESIGN.md`: desain, pemilihan mode, hasil benchmark.
+- `docs/HANDOFF_BRILIAN.md`: tugas backend, DB, deploy.
+
+## Uji dan benchmark
+    python -m unittest discover -s tests
+    python bench/benchmark.py          # bench/results.md|csv|png
+    python bench/mode_comparison.py    # bench/modes.md
 
 ## Catatan
 - Password disimpan sebagai hash (werkzeug), bukan enkripsi simetris. Ini memang seharusnya begitu.
-- Sebelum deploy: ganti `LOOKUP_KEY` (env var) dan pakai HTTPS.
+- Sebelum deploy: set `MASTER_KEY` dan `LOOKUP_KEY` (acak, berbeda), matikan `debug`, pakai HTTPS.
 - Penyimpanan file di disk memakai nama acak (`storage/<user_id>/<random>.bin`), nama asli ada di DB.
