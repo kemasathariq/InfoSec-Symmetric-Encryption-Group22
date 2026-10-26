@@ -3,6 +3,8 @@ Encrypt and decrypt data with AES, DES or RC4.
 
 Every encrypted blob looks like this:
     magic | cipher_id | salt | iv/nonce | ciphertext | tag
+A layered blob (e.g. "aes+des+rc4") wraps one blob inside the next:
+    magic_layered | layer_count | outer blob( ... inner blob(data) )
 
 Each object gets its own key, made from MASTER_KEY and a random salt.
 The tag also covers user_id and purpose, so a blob copied to another
@@ -18,6 +20,8 @@ from Crypto.Hash import SHA256
 from Crypto.Random import get_random_bytes
 
 MAGIC = b"\xc5\x01"
+MAGIC_LAYERED = b"\xc5\x02"  # blob made of several ciphers on top of each other
+MAX_LAYERS = 8
 SALT_LEN = 16
 HEADER_FIXED = len(MAGIC) + 1 + SALT_LEN
 
@@ -112,7 +116,7 @@ CIPHERS = {c.name: c for c in (AesGcm, DesCtr, Rc4Drop)}
 _BY_ID = {c.id: c for c in CIPHERS.values()}
 
 
-def encrypt(cipher: str, data: bytes, *, user_id: int, purpose: str) -> bytes:
+def _encrypt_one(cipher: str, data: bytes, user_id: int, purpose: str) -> bytes:
     c = CIPHERS[cipher]
     salt, iv = get_random_bytes(SALT_LEN), get_random_bytes(c.iv_len)
     header = MAGIC + bytes([c.id]) + salt + iv
@@ -121,7 +125,7 @@ def encrypt(cipher: str, data: bytes, *, user_id: int, purpose: str) -> bytes:
     return header + ct + tag
 
 
-def decrypt(blob: bytes, *, user_id: int, purpose: str) -> bytes:
+def _decrypt_one(blob: bytes, user_id: int, purpose: str) -> bytes:
     if len(blob) < HEADER_FIXED + 1 or blob[:2] != MAGIC or blob[2] not in _BY_ID:
         raise IntegrityError("Unknown blob format")
     c = _BY_ID[blob[2]]
@@ -134,7 +138,32 @@ def decrypt(blob: bytes, *, user_id: int, purpose: str) -> bytes:
     return c.decrypt(key, iv, _aad(header, user_id, purpose), ct, tag)
 
 
+def encrypt(cipher: str, data: bytes, *, user_id: int, purpose: str) -> bytes:
+    """cipher is one name ("aes") or layers joined by "+" ("aes+des+rc4", first = innermost)."""
+    if "+" not in cipher:
+        return _encrypt_one(cipher, data, user_id, purpose)
+    names = cipher.split("+")
+    blob = data
+    for i, name in enumerate(names):
+        blob = _encrypt_one(name, blob, user_id, f"{purpose}|layer{i}of{len(names)}")
+    return MAGIC_LAYERED + bytes([len(names)]) + blob
+
+
+def decrypt(blob: bytes, *, user_id: int, purpose: str) -> bytes:
+    if blob[:2] != MAGIC_LAYERED:
+        return _decrypt_one(blob, user_id, purpose)
+    if len(blob) < 4 or not 1 <= blob[2] <= MAX_LAYERS:
+        raise IntegrityError("Bad layer count")
+    n, data = blob[2], blob[3:]
+    # Each layer's label contains its position and the total, so a changed count fails here.
+    for i in reversed(range(n)):
+        data = _decrypt_one(data, user_id, f"{purpose}|layer{i}of{n}")
+    return data
+
+
 def overhead(cipher: str, plain_len: int) -> int:
-    """Extra bytes added to the data (header + tag)."""
+    """Extra bytes added to the data (headers + tags)."""
+    if "+" in cipher:
+        return len(MAGIC_LAYERED) + 1 + sum(overhead(n, 0) for n in cipher.split("+"))
     c = CIPHERS[cipher]
     return HEADER_FIXED + c.iv_len + c.tag_len

@@ -77,5 +77,46 @@ class Tamper(unittest.TestCase):
             os.environ["MASTER_KEY"] = "test-master-key"
 
 
+class Layered(unittest.TestCase):
+    LAYERS = ["aes+des+rc4", "rc4+des+aes", "aes+rc4"]
+
+    def test_roundtrip_and_size(self):
+        for layers in self.LAYERS:
+            for n in (0, 1, 17, 1000, 100_000):
+                data = os.urandom(n)
+                blob = ciphers.encrypt(layers, data, user_id=1, purpose="ktp")
+                self.assertEqual(ciphers.decrypt(blob, user_id=1, purpose="ktp"), data, (layers, n))
+                self.assertEqual(len(blob), n + ciphers.overhead(layers, n), (layers, n))
+
+    def test_no_plaintext_and_random_each_time(self):
+        data = b"NIK=3578012345670001 Budi Santoso " * 20
+        a = ciphers.encrypt("aes+des+rc4", data, user_id=1, purpose="profile")
+        b = ciphers.encrypt("aes+des+rc4", data, user_id=1, purpose="profile")
+        self.assertNotEqual(a, b)
+        self.assertNotIn(b"3578012345670001", a)
+
+    def test_every_bit_flip_rejected(self):
+        blob = ciphers.encrypt("aes+des+rc4", os.urandom(100), user_id=1, purpose="ktp")
+        for i in range(len(blob)):
+            bad = bytearray(blob)
+            bad[i] ^= 0x01
+            with self.assertRaises(ciphers.IntegrityError, msg=i):
+                ciphers.decrypt(bytes(bad), user_id=1, purpose="ktp")
+
+    def test_bound_to_user_and_purpose(self):
+        blob = ciphers.encrypt("aes+des+rc4", b"secret", user_id=1, purpose="ktp")
+        for uid, purpose in ((2, "ktp"), (1, "selfie_video")):
+            with self.assertRaises(ciphers.IntegrityError):
+                ciphers.decrypt(blob, user_id=uid, purpose=purpose)
+
+    def test_changed_layer_count_is_detected(self):
+        # Claiming 2 layers (or 1, or 4) on a 3-layer blob must fail, not return inner data.
+        blob = ciphers.encrypt("aes+des+rc4", b"secret", user_id=1, purpose="ktp")
+        for n in (1, 2, 4):
+            forged = ciphers.MAGIC_LAYERED + bytes([n]) + blob[3:]
+            with self.assertRaises(ciphers.IntegrityError, msg=n):
+                ciphers.decrypt(forged, user_id=1, purpose="ktp")
+
+
 if __name__ == "__main__":
     unittest.main()
