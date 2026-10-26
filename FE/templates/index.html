@@ -1,0 +1,191 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#faf9f5">
+  <meta name="description" content="Mulai perjalanan finansialmu dengan Ruang, layanan rekening digital yang sederhana dan transparan.">
+  <title>Ruang — Perbankan digital, lebih jelas</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/app.css') }}">
+</head>
+<body>
+  <div class="app-shell" id="home">
+    <header class="topbar">
+      <a class="brand" href="#home" aria-label="Ruang, beranda">
+        <span class="brand-monogram" aria-hidden="true">R</span>
+        <span>ruang<span class="brand-period">.</span></span>
+      </a>
+      <nav class="top-navigation" id="top-navigation" aria-label="Navigasi utama">
+        <a href="#benefits">Layanan</a>
+        <a href="#how-it-works">Cara kerja</a>
+        <a href="#privacy-note">Keamanan</a>
+      </nav>
+      <div class="topbar-actions">
+        <button class="text-button hidden" id="logout-button" type="button">Keluar <span aria-hidden="true">↗</span></button>
+        <button class="nav-cta" id="register-cta" type="button" data-show-register>Buka rekening <span aria-hidden="true">↗</span></button>
+      </div>
+    </header>
+
+    <main>
+      <section class="auth-layout" id="auth-view">
+        <div class="landing-intro">
+          <div class="eyebrow"><span class="eyebrow-line"></span> RUANG UNTUK LANGKAH BERIKUTNYA <span class="issue-index">LAYANAN DIGITAL · 01</span></div>
+          <h1>Bawa setiap rencana<br>ke arah yang <span>lebih jelas.</span></h1>
+          <p class="landing-copy">Mulai perjalanan finansial dengan proses yang sederhana, informasi yang jelas, dan kendali atas data pribadimu.</p>
+        </div>
+
+        <div class="auth-stage">
+          <div class="welcome-visual" aria-label="Ilustrasi rekening digital Ruang">
+            <div class="visual-label"><span>REKENING DIGITAL</span><span>DIRANCANG UNTUKMU · 01</span></div>
+            <div class="visual-orbit orbit-large"></div>
+            <div class="visual-orbit orbit-small"></div>
+            <div class="visual-sun"></div>
+            <div class="visual-spark" aria-hidden="true">✳</div>
+            <div class="preview-card">
+              <div class="preview-top">
+                <div class="preview-brand"><span class="preview-monogram">R</span><span>ruang<span class="brand-period">.</span></span></div>
+                <span class="preview-chip">REKENING UTAMA</span>
+              </div>
+              <span class="preview-caption">SALDO TERSEDIA</span>
+              <div class="preview-balance"><span>Rp</span> ———</div>
+              <div class="preview-rule"></div>
+              <div class="preview-bottom"><span>Ruang untuk hal yang penting.</span><span aria-hidden="true">✳</span></div>
+            </div>
+            <div class="visual-note"><span>✳</span><span>Mulai dari<br>yang penting.</span></div>
+            <div class="visual-caption">LANGKAH KECIL, RENCANA BESAR. <span>↓</span></div>
+          </div>
+
+          <div class="auth-panel" id="access-panel">
+            <div class="auth-tabs" role="tablist" aria-label="Pilih akses">
+              <button class="auth-tab active" id="login-tab" type="button" role="tab" aria-selected="true">Masuk</button>
+              <button class="auth-tab" id="register-tab" type="button" role="tab" aria-selected="false">Buka rekening</button>
+            </div>
+
+            <section id="login-panel" class="login-panel" aria-labelledby="login-heading">
+              <div class="panel-heading">
+                <span class="panel-kicker">SELAMAT DATANG KEMBALI</span>
+                <h2 id="login-heading">Senang melihatmu.</h2>
+                <p>Masuk untuk melihat rekening dan dokumen pribadimu.</p>
+              </div>
+              <form id="login-form" novalidate>
+                <label class="field-label" for="login-email">Email</label>
+                <div class="input-wrap"><span class="input-icon" aria-hidden="true">✉</span><input id="login-email" name="email" type="email" autocomplete="email" placeholder="nama@email.com" required></div>
+                <label class="field-label" for="login-password">Kata sandi</label>
+                <div class="input-wrap"><span class="input-icon lock-icon" aria-hidden="true">⌑</span><input id="login-password" name="password" type="password" autocomplete="current-password" placeholder="Masukkan kata sandi" required><button class="password-toggle" type="button" data-toggle-password="login-password" aria-label="Tampilkan kata sandi">Lihat</button></div>
+                <div class="form-message" id="login-message" role="alert" aria-live="polite"></div>
+                <button class="primary-button full-button" type="submit"><span>Masuk ke akun</span><span aria-hidden="true">→</span></button>
+              </form>
+              <p class="switch-copy">Belum menjadi nasabah? <button class="inline-button" type="button" data-show-register>Mulai pendaftaran</button></p>
+              <div class="login-foot"><span class="mini-lock" aria-hidden="true">⌑</span> Sesi pribadi · Akses data dengan aman</div>
+            </section>
+
+            <section id="register-panel" class="register-panel hidden" aria-label="Pendaftaran rekening">
+              <div class="panel-heading register-heading">
+                <span class="panel-kicker">PEMBUKAAN REKENING DIGITAL</span>
+                <h2>Semua dimulai dari sini.</h2>
+                <p>Isi beberapa detail, lalu siapkan dokumenmu.</p>
+              </div>
+              <div class="progress-area">
+                <div class="progress-caption"><span id="step-caption">LANGKAH 01 <span class="caption-muted">/ 03</span></span><span id="step-name">Data diri</span></div>
+                <div class="progress-track"><span id="progress-fill"></span></div>
+                <div class="step-labels"><span class="current" data-step-label="1">Data diri</span><span data-step-label="2">Dokumen</span><span data-step-label="3">Keamanan</span></div>
+              </div>
+              <form id="register-form" novalidate>
+                <div class="register-step" data-step="1">
+                  <div class="field-grid">
+                    <div class="field full-field"><label class="field-label" for="full_name">Nama lengkap</label><input id="full_name" name="full_name" type="text" autocomplete="name" minlength="3" placeholder="Sesuai KTP" required></div>
+                    <div class="field"><label class="field-label" for="nik">NIK</label><input id="nik" name="nik" type="text" inputmode="numeric" pattern="[0-9]{16}" maxlength="16" placeholder="16 digit angka" required><span class="field-hint">Pastikan sesuai KTP</span></div>
+                    <div class="field"><label class="field-label" for="date_of_birth">Tanggal lahir</label><input id="date_of_birth" name="date_of_birth" type="date" required><span class="field-hint">Usia minimal 17 tahun</span></div>
+                    <div class="field"><label class="field-label" for="email">Email</label><input id="email" name="email" type="email" autocomplete="email" placeholder="nama@email.com" required></div>
+                    <div class="field"><label class="field-label" for="phone">Nomor HP</label><input id="phone" name="phone" type="tel" inputmode="tel" autocomplete="tel" pattern="(\+62|62|0)8[0-9]{8,12}" placeholder="08123456789" required></div>
+                    <div class="field full-field"><label class="field-label" for="address">Alamat lengkap</label><textarea id="address" name="address" rows="2" minlength="10" placeholder="Jalan, nomor, kelurahan, kota, dan kode pos" required></textarea></div>
+                  </div>
+                </div>
+                <div class="register-step hidden" data-step="2">
+                  <div class="upload-intro"><span class="upload-icon" aria-hidden="true">↥</span><div><strong>Dokumen untuk verifikasi</strong><p>Unggah file jelas dan dapat dibaca. Batas total 60 MB.</p></div></div>
+                  <div class="upload-list">
+                    <label class="upload-card" for="ktp"><span class="upload-symbol">ID</span><span class="upload-description"><strong>Kartu Tanda Penduduk</strong><small>JPG, PNG, atau PDF</small><span class="file-name" data-file-name="ktp">Pilih file KTP</span></span><span class="upload-action">Pilih <span aria-hidden="true">＋</span></span><input id="ktp" name="ktp" type="file" accept=".jpg,.jpeg,.png,.pdf" required></label>
+                    <label class="upload-card" for="supporting_doc"><span class="upload-symbol">DOC</span><span class="upload-description"><strong>Dokumen pendukung</strong><small>Slip gaji atau dokumen kantor · PDF, Word, Excel</small><span class="file-name" data-file-name="supporting_doc">Pilih dokumen</span></span><span class="upload-action">Pilih <span aria-hidden="true">＋</span></span><input id="supporting_doc" name="supporting_doc" type="file" accept=".pdf,.doc,.docx,.xls,.xlsx" required></label>
+                    <label class="upload-card" for="selfie_video"><span class="upload-symbol">VID</span><span class="upload-description"><strong>Video selfie</strong><small>MP4, WEBM, atau MOV</small><span class="file-name" data-file-name="selfie_video">Pilih video selfie</span></span><span class="upload-action">Pilih <span aria-hidden="true">＋</span></span><input id="selfie_video" name="selfie_video" type="file" accept=".mp4,.webm,.mov" required></label>
+                  </div>
+                  <div class="upload-note"><span aria-hidden="true">i</span> Pastikan dokumen milikmu sendiri. Dokumen hanya dapat diakses setelah masuk.</div>
+                </div>
+                <div class="register-step hidden" data-step="3">
+                  <div class="security-intro"><div class="security-emblem" aria-hidden="true">✳</div><div><strong>Amankan akunmu</strong><p>Buat kata sandi dan setujui pemrosesan data untuk menyelesaikan pendaftaran.</p></div></div>
+                  <label class="field-label" for="register-password">Kata sandi</label>
+                  <div class="input-wrap"><span class="input-icon lock-icon" aria-hidden="true">⌑</span><input id="register-password" name="password" type="password" autocomplete="new-password" minlength="8" placeholder="Minimal 8 karakter" required><button class="password-toggle" type="button" data-toggle-password="register-password" aria-label="Tampilkan kata sandi">Lihat</button></div>
+                  <div class="password-hint"><span class="hint-check">✓</span> Gunakan minimal 8 karakter yang tidak mudah ditebak.</div>
+                  <label class="consent-card"><input id="consent_pdp" name="consent_pdp" type="checkbox" value="true" required><span class="custom-checkbox" aria-hidden="true"></span><span>Saya menyetujui pemrosesan data pribadi untuk keperluan pendaftaran dan layanan rekening, sesuai <a href="#privacy-note">pemberitahuan privasi</a>.</span></label>
+                  <div class="review-card"><span class="review-icon">✓</span><span>Periksa kembali data dan dokumen sebelum menyelesaikan pendaftaran.</span></div>
+                </div>
+                <div class="form-message" id="register-message" role="alert" aria-live="polite"></div>
+                <div class="register-actions"><button class="secondary-button hidden" id="back-button" type="button">← <span>Kembali</span></button><button class="primary-button" id="next-button" type="button"><span>Lanjutkan</span><span aria-hidden="true">→</span></button><button class="primary-button hidden" id="submit-register" type="submit"><span>Buat rekening</span><span aria-hidden="true">→</span></button></div>
+              </form>
+              <p class="switch-copy register-switch">Sudah punya akun? <button class="inline-button" type="button" data-show-login>Masuk di sini</button></p>
+            </section>
+          </div>
+        </div>
+
+        <div class="trust-strip" id="benefits">
+          <span class="trust-label">SATU RUANG UNTUK</span>
+          <span>Identitas pribadi</span><span class="trust-star">✳</span>
+          <span>Rekening digital</span><span class="trust-star">✳</span>
+          <span>Dokumen penting</span><span class="trust-star">✳</span>
+          <span>Kontrol milikmu</span>
+        </div>
+
+        <section class="benefit-section" id="how-it-works">
+          <div class="section-heading">
+            <div><span class="panel-kicker">CARA YANG LEBIH JELAS</span><h2>Mulai dengan tenang.<br><span>Lanjutkan dengan yakin.</span></h2></div>
+            <p>Pendaftaran digital yang dirancang supaya hal penting tetap mudah ditemukan—mulai dari identitas hingga dokumen pribadimu.</p>
+          </div>
+          <div class="benefit-grid">
+            <article class="benefit-card"><span class="benefit-number">01 / DAFTAR</span><span class="benefit-icon">01</span><h3>Semua berawal<br>dari satu langkah.</h3><p>Isi informasi dasar dan buka rekening secara online, tanpa perlu datang ke cabang.</p></article>
+            <article class="benefit-card benefit-card-soft"><span class="benefit-number">02 / ATUR</span><span class="benefit-icon benefit-icon-sun">✳</span><h3>Dokumen, di<br>tempatnya.</h3><p>Unggah dokumenmu saat pendaftaran, lalu akses kembali setelah masuk ke akun.</p></article>
+            <article class="benefit-card benefit-card-dark" id="privacy-note"><span class="benefit-number">03 / KENDALIKAN</span><span class="benefit-icon benefit-icon-ring">⌑</span><h3>Ruang pribadi.<br>Akses pribadi.</h3><p>Profil dan dokumen hanya ditampilkan melalui sesi akunmu yang terautentikasi.</p></article>
+          </div>
+          <p class="prototype-note"><span>i</span> Prototipe akademik · enkripsi simetris belum diaktifkan pada tahap ini.</p>
+        </section>
+      </section>
+
+      <section class="dashboard hidden" id="dashboard-view">
+        <div class="dashboard-heading">
+          <div><span class="panel-kicker">RINGKASAN REKENING</span><h1>Halo, <span id="customer-name">Nasabah</span><span class="greeting-dot">.</span></h1><p>Ini ruang pribadimu. Senang kamu kembali.</p></div>
+          <div class="date-chip"><span class="date-dot"></span><span id="today-date"></span></div>
+        </div>
+        <div class="dashboard-grid">
+          <article class="account-card">
+            <div class="account-card-top"><div class="account-brand"><span class="brand-monogram light-mark">R</span> ruang<span class="brand-period">.</span></div><span class="account-type">REKENING DIGITAL</span></div>
+            <div class="balance-label">Saldo tersedia</div><div class="balance-amount"><span class="currency">Rp</span> <span id="account-balance">0</span></div>
+            <div class="account-card-bottom"><div><span class="card-caption">NOMOR REKENING</span><div class="account-number" id="account-number">—</div></div><button class="copy-button" id="copy-account" type="button" aria-label="Salin nomor rekening">▢</button></div>
+            <div class="card-orbit orbit-a"></div><div class="card-orbit orbit-b"></div>
+          </article>
+          <aside class="privacy-card"><div class="privacy-icon">✳</div><div><span class="panel-kicker">PRIVASI & KEAMANAN</span><h3>Data milikmu,<br>akses milikmu.</h3><p>Profil dan dokumen hanya ditampilkan setelah kamu masuk. Unduhan diverifikasi oleh layanan.</p><span class="demo-status"><span class="status-dot"></span> Mode proyek · enkripsi belum aktif</span></div></aside>
+        </div>
+        <section class="profile-section">
+          <div class="section-heading"><div><span class="panel-kicker">INFORMASI NASABAH</span><h2>Profil pribadi</h2></div><span class="section-mark">01</span></div>
+          <div class="profile-grid">
+            <div class="profile-item"><span class="profile-icon">◉</span><div><span class="profile-label">Nama lengkap</span><strong id="profile-name">—</strong></div></div>
+            <div class="profile-item"><span class="profile-icon">✉</span><div><span class="profile-label">Email</span><strong id="profile-email">—</strong></div></div>
+            <div class="profile-item"><span class="profile-icon">⌕</span><div><span class="profile-label">Nomor HP</span><strong id="profile-phone">—</strong></div></div>
+            <div class="profile-item"><span class="profile-icon">▤</span><div><span class="profile-label">Tanggal lahir</span><strong id="profile-dob">—</strong></div></div>
+            <div class="profile-item"><span class="profile-icon">⌖</span><div><span class="profile-label">Alamat</span><strong id="profile-address">—</strong></div></div>
+            <div class="profile-item"><span class="profile-icon">◌</span><div><span class="profile-label">NIK</span><strong id="profile-nik">—</strong></div></div>
+          </div>
+        </section>
+        <section class="documents-section">
+          <div class="section-heading"><div><span class="panel-kicker">ARSIP PRIBADI</span><h2>Dokumenmu</h2><p>File yang kamu unggah saat membuka rekening.</p></div><span class="document-count" id="document-count">0 dokumen</span></div>
+          <div class="document-list" id="document-list"></div>
+        </section>
+        <footer class="dashboard-footer"><span>Ruang digital banking <span class="brand-period">.</span></span><span>Untuk bantuan, hubungi tim layanan nasabah.</span></footer>
+      </section>
+    </main>
+    <footer class="site-footer" id="updates"><span class="footer-brand">ruang<span class="brand-period">.</span></span><span>RUANG UNTUK LANGKAH BERIKUTNYA.</span><span>© RUANG DIGITAL BANKING · PROTOTIPE AKADEMIK</span></footer>
+    <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  </div>
+  <script src="{{ url_for('static', filename='js/app.js') }}" defer></script>
+</body>
+</html>
