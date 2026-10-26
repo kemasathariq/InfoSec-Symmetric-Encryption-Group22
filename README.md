@@ -1,8 +1,5 @@
 # KlinikKu: Penyimpanan Data Pasien Terenkripsi
 
-Tugas 1 Keamanan Informasi (kelompok 4 orang).
-**Status: kerangka awal. Belum ada implementasi.** Semua file `.py` hanya berisi kontrak dan daftar TODO.
-
 ## 1. Skenario (usulan, difinalkan di hari 0: lihat `docs/00-kesepakatan-hari-0.md`)
 
 Platform telemedicine/klinik digital. Pengguna adalah **pasien**. Setiap pasien menyimpan data kesehatannya
