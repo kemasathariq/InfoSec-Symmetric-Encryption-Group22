@@ -18,7 +18,7 @@ Short terms used here:
 | Extra size per item | 47 bytes | 55 bytes | 51 bytes |
 | Used for | profile, selfie video | KTP scan | office document |
 
-All three ciphers run at the same time. Each data type uses one of them (section 4). Every stored item remembers which cipher it used, so the setting can change later without breaking old data.
+All three ciphers run at the same time. By default each data type uses one of them (section 4). There is also a layered setup where every item uses all three (section 4b). Every stored item remembers which cipher it used, so the setting can change later without breaking old data.
 
 Stored item: `magic | cipher_id | salt | iv/nonce | ciphertext | tag`
 
@@ -86,6 +86,42 @@ Limits to write in the report:
 - For real use, switch everything to AES with `CIPHER=aes`.
 - Change single entries with `CIPHER_POLICY=ktp=aes,supporting_doc=aes`. Old items still decrypt.
 
+### 4b. Layered option, side by side
+
+Our TA said the assignment can be read two ways, so the app supports both and we compare them. Switch with one setting:
+
+| Setup | Setting | What it does |
+|---|---|---|
+| One cipher per data type | none (default) | The table above |
+| Layered | `CIPHER=layered` | Every item is encrypted with AES-GCM, that result with DES-CTR + HMAC, and that result with RC4 + HMAC |
+| All AES | `CIPHER=aes` | One cipher for everything, for comparison and real use |
+
+How layered works: each layer has its own key (derived with a different label) and its own tag. The label of each layer also contains its position and the total number of layers. So removing a layer, adding one, or changing the count is detected (tested).
+
+Results for one registration (profile + KTP + payslip + video), random data, median of 30 runs (`bench/results.md`):
+
+| Setup | Encrypt | Decrypt | vs all-AES | Extra bytes | Weakest protection of any item |
+|---|---|---|---|---|---|
+| All AES | 83 ms | 82 ms | 1.0x | 188 | AES |
+| One cipher per data type | 87 ms | 86 ms | 1.0x | 200 | DES (the KTP) |
+| Layered AES + DES + RC4 | 613 ms | 610 ms | 7.4x | 624 | an attacker must break all three layers |
+
+For the 20 MB video alone: AES 74 ms, layered 546 ms.
+
+What it shows:
+1. **Cost.** Layered is 7.4x slower, but still small next to a 16 s upload. For 100 signups at once it is about 61 CPU-seconds against 8.7 (per type) and 8.3 (all AES). Memory peaks at about 4x the file size instead of 3x.
+2. **Size.** Layered adds 156 bytes per item. It does not matter.
+3. **Protection.** In the per-type setup the KTP is protected only by DES and the payslip only by RC4. In the layered setup every item has AES inside, so no item is weaker than AES. In general, layers with independent keys are at least as hard to break as the strongest layer. We did not test this, it is a general result.
+4. **The extra layers add little.** If AES holds, the DES and RC4 layers add nothing. If AES were ever broken, they would still help, but DES can be brute-forced and RC4 is biased, so the real extra protection is small.
+5. **All AES is the best value.** It gives the same practical protection as layered at about 1/7 of the cost, and it has the least code that can go wrong.
+6. **Complexity.** Layered needs three keys per item and nested decryption. We tested every bit position of a layered item (all rejected), the layer count, and the owner check.
+
+Our recommendation:
+- For real protection, use all AES.
+- If every item must use all three ciphers, layered is the safer way to do it. It costs about 0.5 s more per signup, which a customer will not notice, and no item is left with a weak cipher.
+- The per-type setup costs almost the same as all AES but leaves the KTP and payslip with weak ciphers. Its value is in comparing the ciphers on different kinds of data.
+- The team picks the setting for the deployed app and states the reason in the report.
+
 ## 5. Tests
 
 Run: `python -m unittest discover -s tests`
@@ -99,6 +135,7 @@ Run: `python -m unittest discover -s tests`
 | Wrong user, wrong data type, wrong master key | Decryption is refused |
 | Full flow through Flask, all 3 ciphers | Register, login, download gives the same SHA-256. Nothing readable in the DB or `storage/`. A damaged file gives HTTP 500. No token gives 401 |
 | Default cipher per data type | Each stored item uses the cipher from section 4 |
+| Layered mode: every bit position, wrong layer count, wrong user or data type, full Flask flow | All changes rejected, data comes back identical |
 
 ## 6. Evaluation
 
@@ -106,17 +143,18 @@ Run: `python -m unittest discover -s tests`
 
 **What we measured and why.** Customers feel upload and download time. The bank feels CPU and memory when many people register at once. So we measured encrypt and decrypt time, speed in MB/s, extra size, peak memory, and whether the data comes back identical (SHA-256 checked on every run).
 
-**How.** We timed the real app code (`ciphers.encrypt` and `ciphers.decrypt`) with the same library and machine for every cipher. Sizes: 1 KB profile, 500 KB KTP, 2 MB document, 20 MB video. Each test has 3 warm-up runs and 30 timed runs, in shuffled cipher order, and we report the median. We also tried random data and repeated text. The difference is at most 0.6%, so the content does not matter.
+**How.** We timed the real app code (`ciphers.encrypt` and `ciphers.decrypt`) with the same library and machine for every cipher. Sizes: 1 KB profile, 500 KB KTP, 2 MB document, 20 MB video. Each test has 3 warm-up runs and 30 timed runs, in shuffled cipher order, and we report the median. We also tried random data and repeated text. The difference is at most 0.7%, so the content does not matter.
 
 **Results** (20 MB video, Apple ARM laptop, Python 3.14, pycryptodome):
 
 | Cipher | Encrypt | Decrypt | MB/s | One full registration |
 |---|---|---|---|---|
-| AES-GCM | 74 ms | 73 ms | 272 | 83 ms |
+| AES-GCM | 74 ms | 73 ms | 271 | 83 ms |
 | DES-CTR + HMAC | 449 ms | 448 ms | 45 | 503 ms (6.1x AES) |
-| RC4 + HMAC | 22 ms | 21 ms | 906 | 25 ms (0.3x AES) |
+| RC4 + HMAC | 22 ms | 22 ms | 902 | 25 ms (0.3x AES) |
+| Layered AES + DES + RC4 | 546 ms | 544 ms | 37 | 613 ms (7.4x AES) |
 
-RC4 bias test: in 200,000 random keys, the 2nd output byte was 0 about 1.94 times more often than it should be. After skipping the first 3072 bytes it was 1.01 times, which is normal.
+RC4 bias test: in 200,000 random keys, the 2nd output byte was 0 about 2.08 times more often than it should be (theory says about 2). After skipping the first 3072 bytes it was 1.00 times, which is normal.
 
 **What the results mean.**
 1. Speed does not decide. Uploading 20 MB at 10 Mbit/s takes about 16 s. AES adds 0.07 s (under 0.5%). DES adds 0.45 s (under 3%). Security decides, and the fastest cipher (RC4) is the one banned in TLS.
@@ -129,7 +167,7 @@ RC4 bias test: in 200,000 random keys, the 2nd output byte was 0 about 1.94 time
    - RC4: biased output and a weak key setup (Stallings 8.5, p. 271). RFC 7465 bans it in TLS. Skipping bytes and using one key per item fixes the bias we measured, but RC4 is still not recommended.
    - AES-256-GCM: no known practical attack, and it checks integrity.
 
-**Conclusion.** AES-256-GCM is the only cipher with no known weakness, so it protects the data that would hurt most if leaked. RC4 and DES are used on lower-harm data because the assignment requires them. Any of them can be switched to AES with one setting.
+**Conclusion.** AES-256-GCM is the only cipher with no known weakness, so it protects the data that would hurt most if leaked. RC4 and DES are used because the assignment requires them: either on lower-harm data (per type) or as extra layers (layered). Section 4b compares the two ways. Any setup can be switched to AES with one setting.
 
 **Limits of these results.** One machine, one library, and no network or disk in the timing. The memory tool only sees Python memory, so 3x is the minimum.
 
@@ -155,6 +193,8 @@ The key source is the one real design difference, and each choice has a trade-of
 
 ## 8. Questions for the TA
 
-1. The assignment says data must be protected "with each of the following ciphers". Our choice: all three run at once, one per data type (section 4), so we can compare them on real data. The other reading is that every item is encrypted by all three in layers (AES, then DES, then RC4). Please confirm our reading is accepted.
-2. Is AES-GCM accepted as the mode of operation? Our basis: Stallings 12.7 presents GCM as an authenticated mode built on CTR.
-3. Should the key come from the user's password (like the lab tool), or is a server master key acceptable? "Only an authenticated user may get their own data back" can be read either way. See section 7.
+Answered: the TA said both readings of "each of the following ciphers" are fine (one cipher per data type, or all three layered), and asked us to compare them side by side. We did, in section 4b.
+
+Still open:
+1. Is AES-GCM accepted as the mode of operation? Our basis: Stallings 12.7 presents GCM as an authenticated mode built on CTR.
+2. Should the key come from the user's password (like the lab tool), or is a server master key acceptable? "Only an authenticated user may get their own data back" can be read either way. See section 7.
