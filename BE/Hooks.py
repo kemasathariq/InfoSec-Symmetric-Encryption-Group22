@@ -4,13 +4,15 @@ Each data type has its own cipher (see POLICY). Reasons: docs/CRYPTO_DESIGN.md s
 
 Env options:
   CIPHER=aes|des|rc4          use one cipher for everything
-  CIPHER_POLICY=ktp=aes,...   change the cipher of single data types
+  CIPHER=layered              encrypt everything with AES, then DES, then RC4 (all three)
+  CIPHER_POLICY=ktp=aes,...   change the cipher of single data types ("aes+des" = layers)
 """
 import os
 
 import ciphers
 
 PURPOSES = ("profile", "ktp", "supporting_doc", "selfie_video")
+LAYERED = "aes+des+rc4"
 
 POLICY = {
     "profile": "aes",
@@ -29,7 +31,9 @@ def _load_policy() -> dict:
     if forced:
         policy = dict.fromkeys(PURPOSES, forced)
     for purpose, name in policy.items():
-        if purpose not in PURPOSES or name not in ciphers.CIPHERS:
+        name = LAYERED if name == "layered" else name
+        policy[purpose] = name
+        if purpose not in PURPOSES or not all(n in ciphers.CIPHERS for n in name.split("+")):
             raise RuntimeError(f"Bad cipher policy {purpose}={name}; "
                                f"purposes {PURPOSES}, ciphers {sorted(ciphers.CIPHERS)}")
     return policy

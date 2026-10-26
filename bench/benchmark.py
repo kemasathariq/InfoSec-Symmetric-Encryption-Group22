@@ -24,7 +24,7 @@ import ciphers  # noqa: E402
 
 OBJECTS = [("profile_1KB", 1_000), ("ktp_500KB", 500_000), ("office_doc_2MB", 2_000_000),
            ("selfie_video_20MB", 20_000_000)]
-NAMES = ["aes", "des", "rc4"]
+NAMES = ["aes", "des", "rc4", "aes+des+rc4"]  # last one = layered
 
 
 def make(kind, n):
@@ -156,6 +156,22 @@ def main():
                sum(get("random", o, c, "decrypt")["median_ms"] for o, _ in OBJECTS)) for c in NAMES}
     for c in NAMES:
         L.append(f"| {c.upper()} | {tot[c][0]:.0f} | {tot[c][1]:.0f} | {tot[c][0] / tot['aes'][0]:.2f}x |")
+    # Side by side: the three ways to protect one registration.
+    kinds = [o for o, _ in OBJECTS]
+    per_type = dict(zip(kinds, ["aes", "des", "rc4", "aes"]))
+    plans = [("All AES", dict.fromkeys(kinds, "aes"), "AES"),
+             ("One cipher per data type (default)", per_type, "DES (the KTP)"),
+             ("Layered AES+DES+RC4 on everything", dict.fromkeys(kinds, "aes+des+rc4"),
+              "all three, attacker must break each layer")]
+    L.append("\n## Side by side: one registration (profile + KTP + doc + video), random content\n")
+    L.append("| Setup | Encrypt ms | Decrypt ms | vs all-AES | Extra bytes | Weakest protection of any item |")
+    L.append("|---|---|---|---|---|---|")
+    base = sum(get("random", o, "aes", "encrypt")["median_ms"] for o in kinds)
+    for title, plan, weakest in plans:
+        e = sum(get("random", o, plan[o], "encrypt")["median_ms"] for o in kinds)
+        d = sum(get("random", o, plan[o], "decrypt")["median_ms"] for o in kinds)
+        extra = sum(get("random", o, plan[o], "encrypt")["overhead_bytes"] for o in kinds)
+        L.append(f"| {title} | {e:.0f} | {d:.0f} | {e / base:.1f}x | {extra} | {weakest} |")
     L.append("\n## Random vs repetitive content (selfie_video_20MB, encrypt, median ms)\n")
     L.append("| Cipher | Random | Repetitive | Difference |")
     L.append("|---|---|---|---|")
@@ -176,10 +192,10 @@ def main():
         fig, ax = plt.subplots(1, 2, figsize=(9, 3.2))
         for i, op in enumerate(("encrypt", "decrypt")):
             for j, c in enumerate(NAMES):
-                ax[i].bar([k + j * 0.27 for k in range(len(OBJECTS))],
+                ax[i].bar([k + j * 0.2 for k in range(len(OBJECTS))],
                           [get("random", o, c, op)["throughput_MBps"] for o, _ in OBJECTS],
-                          0.27, label=c.upper())
-            ax[i].set_xticks([k + 0.27 for k in range(len(OBJECTS))])
+                          0.2, label=c.upper())
+            ax[i].set_xticks([k + 0.3 for k in range(len(OBJECTS))])
             ax[i].set_xticklabels([o.split("_")[0] if o != "office_doc_2MB" else "doc" for o, _ in OBJECTS])
             ax[i].set_yscale("log"); ax[i].set_ylabel("MB/s (log)"); ax[i].set_title(op)
         ax[0].legend()

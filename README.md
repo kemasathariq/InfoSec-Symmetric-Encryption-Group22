@@ -42,7 +42,7 @@ Landing page editorial Lumio tersedia di `http://127.0.0.1:5000/lumio` sebagai h
     curl -OJ localhost:5000/api/me/documents/ktp -H "Authorization: Bearer <token>"
 
 ## Enkripsi
-- `BE/Hooks.py`: `protect()` / `unprotect()` untuk profil JSON dan setiap file. Tiap jenis data punya cipher sendiri (profil dan video AES, dokumen RC4, KTP DES). Ubah dengan `CIPHER_POLICY`, atau paksa satu cipher dengan `CIPHER=aes|des|rc4`.
+- `BE/Hooks.py`: `protect()` / `unprotect()` untuk profil JSON dan setiap file. Tiap jenis data punya cipher sendiri (profil dan video AES, dokumen RC4, KTP DES). Ubah dengan `CIPHER_POLICY`, paksa satu cipher dengan `CIPHER=aes|des|rc4`, atau pakai ketiganya berlapis (AES lalu DES lalu RC4) dengan `CIPHER=layered`.
 - `BE/ciphers.py`: AES-256-GCM, DES-CTR + HMAC-SHA256, RC4 (drop 3072) + HMAC-SHA256. Kunci per objek dari `MASTER_KEY` via HKDF. Tanpa ECB.
 - Kolom `cipher` mencatat cipher, `sha256` memverifikasi data kembali utuh.
 - `email_lookup` dan `nik_lookup` (HMAC) untuk login dan cek duplikat.

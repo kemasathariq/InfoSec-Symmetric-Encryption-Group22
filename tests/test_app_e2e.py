@@ -85,6 +85,7 @@ class E2E(unittest.TestCase):
             profile_blob, cipher = conn.execute("SELECT profile, cipher FROM users").fetchone()
             self.assertEqual((ciphers._BY_ID[profile_blob[2]].name, cipher), ("aes", "aes"))
 
+    def test_layered(self): self.run_cipher("layered")
     def test_aes(self): self.run_cipher("aes")
     def test_des(self): self.run_cipher("des")
     def test_rc4(self): self.run_cipher("rc4")

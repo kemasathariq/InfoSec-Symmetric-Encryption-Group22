@@ -39,7 +39,7 @@ Start here: `git checkout main && git pull`, then follow this file from the top.
 | `MASTER_KEY` | The root of all encryption keys | Required. If you lose it, all data is unreadable. Keep it in a secret manager, not in git |
 | `LOOKUP_KEY` | HMAC key for `email_lookup` and `nik_lookup` | Required, and different from `MASTER_KEY` |
 | `CIPHER_POLICY` | Optional. Change the cipher of single data types, e.g. `ktp=aes,supporting_doc=aes` | Default: profile and video AES, document RC4, KTP DES (`docs/CRYPTO_DESIGN.md` section 4) |
-| `CIPHER` | Optional. `aes`, `des` or `rc4` for everything | Use `aes` in production |
+| `CIPHER` | Optional. `aes`, `des`, `rc4` for everything, or `layered` (AES, then DES, then RC4 on every item) | Kema decides which setup is deployed (see `docs/CRYPTO_DESIGN.md` section 4b). Ask before you deploy. Do not change it later without telling Kema: old items still decrypt, but the report must match what is running |
 | `DB_PATH`, `STORAGE_DIR` | Where data is saved | Must be on storage that is kept between restarts |
 
 ## Target structure
