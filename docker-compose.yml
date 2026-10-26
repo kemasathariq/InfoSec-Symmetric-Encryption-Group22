@@ -1,0 +1,7 @@
+# TODO (C7): definisikan layanan
+#   - db        (PostgreSQL)
+#   - api       (backend/)
+#   - frontend  (frontend/)
+#   - proxy     (TLS; sertifikat self-signed untuk demo)
+# Volume terpisah untuk storage blob terenkripsi. Rahasia lewat variabel lingkungan, bukan di repo.
+services: {}
