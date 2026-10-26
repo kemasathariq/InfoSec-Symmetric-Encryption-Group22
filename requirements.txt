@@ -1,8 +1,0 @@
-# Daftar awal. Finalkan versi di hari 0 (docs/00).
-pycryptodome     # AES, DES, ARC4 (library `cryptography` tidak menyediakan DES/RC4 tunggal)
-argon2-cffi      # Argon2id untuk hash password dan turunan kunci
-fastapi          # (usulan) backend
-uvicorn
-sqlalchemy
-pytest
-matplotlib       # grafik benchmark
