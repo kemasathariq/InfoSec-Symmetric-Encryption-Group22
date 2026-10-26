@@ -1,9 +1,0 @@
-__pycache__/
-.pytest_cache/
-.venv/
-node_modules/
-.env
-*.enc
-storage/
-bench/results/*
-!bench/results/.gitkeep
