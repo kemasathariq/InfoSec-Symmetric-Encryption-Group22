@@ -7,7 +7,7 @@ Antarmuka web tersedia di `http://127.0.0.1:5000/` setelah server dijalankan. Fr
 oleh Flask dan menggunakan endpoint API di bawah; tidak memerlukan layanan frontend terpisah.
 Enkripsi belum aktif pada tahap ini, sesuai status hook backend.
 
-Landing page editorial Lumio tersedia di `http://127.0.0.1:5000/lumio` sebagai halaman visual terpisah.
+Landing page tersedia di `http://127.0.0.1:5000` sebagai halaman visual terpisah.
 
 ## Antarmuka web
 - Buka rekening lewat formulir tiga langkah: data diri, unggah tiga dokumen, dan keamanan/persetujuan PDP.
