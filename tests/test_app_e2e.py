@@ -1,6 +1,7 @@
 """
 Full flow through Flask: register, login, download, for each cipher.
 """
+from contextlib import closing
 import hashlib
 import importlib
 import io
@@ -53,7 +54,8 @@ class E2E(unittest.TestCase):
             # no token means 401
             self.assertEqual(c.get("/api/me").status_code, 401)
             # nothing readable in DB or storage
-            raw_db = sqlite3.connect(f"{tmp}/t.db").execute("SELECT profile FROM users").fetchone()[0]
+            with closing(sqlite3.connect(f"{tmp}/t.db")) as conn:
+                raw_db = conn.execute("SELECT profile FROM users").fetchone()[0]
             self.assertNotIn(b"3578012345670001", raw_db)
             self.assertNotIn(b"Budi", raw_db)
             for p in Path(f"{tmp}/st").rglob("*.bin"):
@@ -76,14 +78,14 @@ class E2E(unittest.TestCase):
                      "selfie_video": (io.BytesIO(os.urandom(2000)), "v.mp4")}
             r = c.post("/api/register", data=dict(FORM, **files), content_type="multipart/form-data")
             self.assertEqual(r.status_code, 201, r.json)
-            conn = sqlite3.connect(f"{tmp}/t.db")
-            expected = {"ktp": "des", "supporting_doc": "rc4", "selfie_video": "aes"}
-            for kind, path, cipher in conn.execute("SELECT kind, path, cipher FROM documents"):
-                blob_id = Path(path).read_bytes()[2]
-                self.assertEqual(ciphers._BY_ID[blob_id].name, expected[kind], kind)
-                self.assertEqual(cipher, expected[kind], kind)
-            profile_blob, cipher = conn.execute("SELECT profile, cipher FROM users").fetchone()
-            self.assertEqual((ciphers._BY_ID[profile_blob[2]].name, cipher), ("aes", "aes"))
+            with closing(sqlite3.connect(f"{tmp}/t.db")) as conn:
+                expected = {"ktp": "des", "supporting_doc": "rc4", "selfie_video": "aes"}
+                for kind, path, cipher in conn.execute("SELECT kind, path, cipher FROM documents"):
+                    blob_id = Path(path).read_bytes()[2]
+                    self.assertEqual(ciphers._BY_ID[blob_id].name, expected[kind], kind)
+                    self.assertEqual(cipher, expected[kind], kind)
+                profile_blob, cipher = conn.execute("SELECT profile, cipher FROM users").fetchone()
+                self.assertEqual((ciphers._BY_ID[profile_blob[2]].name, cipher), ("aes", "aes"))
 
     def test_layered(self): self.run_cipher("layered")
     def test_aes(self): self.run_cipher("aes")
