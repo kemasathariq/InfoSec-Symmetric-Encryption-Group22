@@ -222,10 +222,3 @@ Pertanyaan yang dijawab: cipher mana yang paling cocok untuk data pendaftaran na
 | Penggunaan AI tanpa verifikasi | Nilai 0 | Setiap anggota meninjau kode dan memahami alasannya; simpan log percakapan |
 | Pembagian kerja tidak merata | Riwayat commit timpang | Tetapkan pemilik tiap tahap; commit kecil dan rutin |
 
-## 18. Pertanyaan terbuka
-
-1. Soal menyebut data harus dilindungi "dengan masing-masing cipher: AES, DES, RC4". Apakah artinya sistem mendukung ketiganya secara bergantian (dipilih per data), atau setiap data dienkripsi berlapis oleh ketiganya? Perlu dikonfirmasi ke dosen sebelum tahap 3.
-2. Apakah nomor rekening dan saldo ikut dienkripsi atau cukup dilindungi kontrol akses?
-3. Apakah AES-GCM dapat diterima sebagai "mode operasi yang sesuai", atau dosen mengharapkan mode klasik (CBC/CTR) dengan MAC terpisah?
-4. Pustaka kriptografi yang dipakai: pustaka siap pakai (misalnya `cryptography`, `pycryptodome`) atau implementasi sendiri? Soal membolehkan pustaka apa pun.
-5. Bagaimana kunci utama dikelola selama pengembangan dan demo?
