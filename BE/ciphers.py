@@ -34,7 +34,11 @@ class IntegrityError(Exception):
 
 
 def _master_key() -> bytes:
-    raw = os.environ.get("MASTER_KEY", "dev-only-master-key-change-me")
+    raw = os.environ.get("MASTER_KEY", "").strip()
+    if not raw:
+        if os.environ.get("APP_ENV") == "production":
+            raise RuntimeError("MASTER_KEY is required when APP_ENV=production")
+        raw = "dev-only-master-key-change-me"  # only for tests and benchmarks
     return hashlib.sha256(raw.encode()).digest()
 
 

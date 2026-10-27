@@ -16,14 +16,14 @@ BE = str(Path(__file__).resolve().parents[1] / "BE")
 
 
 def load_app(cipher, tmp):
-    os.environ.update(MASTER_KEY="e2e", DB_PATH=f"{tmp}/t.db", STORAGE_DIR=f"{tmp}/st")
+    os.environ.update(MASTER_KEY="e2e", LOOKUP_KEY="e2e-lookup", DB_PATH=f"{tmp}/t.db", STORAGE_DIR=f"{tmp}/st")
     if cipher:
         os.environ["CIPHER"] = cipher
     else:
         os.environ.pop("CIPHER", None)
     if BE not in sys.path:
         sys.path.insert(0, BE)
-    for m in ("Hooks", "DB", "App"):
+    for m in ("config", "Hooks", "DB", "App"):
         sys.modules.pop(m, None)
     return importlib.import_module("App")
 
@@ -86,6 +86,17 @@ class E2E(unittest.TestCase):
                     self.assertEqual(cipher, expected[kind], kind)
                 profile_blob, cipher = conn.execute("SELECT profile, cipher FROM users").fetchone()
                 self.assertEqual((ciphers._BY_ID[profile_blob[2]].name, cipher), ("aes", "aes"))
+
+    def test_refuses_to_start_without_keys(self):
+        for missing in ("MASTER_KEY", "LOOKUP_KEY"):
+            with tempfile.TemporaryDirectory() as tmp:
+                load_app(None, tmp)
+                os.environ[missing] = ""  # empty counts as missing, and .env does not override it
+                for m in ("config", "Hooks", "DB", "App"):
+                    sys.modules.pop(m, None)
+                with self.assertRaises(RuntimeError, msg=missing):
+                    importlib.import_module("App")
+        os.environ.update(MASTER_KEY="e2e", LOOKUP_KEY="e2e-lookup")
 
     def test_layered(self): self.run_cipher("layered")
     def test_aes(self): self.run_cipher("aes")

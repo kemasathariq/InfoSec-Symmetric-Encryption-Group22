@@ -13,13 +13,14 @@ from pathlib import Path
 from flask import Flask, g, jsonify, render_template, request, send_file
 from werkzeug.security import check_password_hash, generate_password_hash
 
+import config
 import ciphers
 import DB as db
 import Hooks as hooks
 
-BASE_DIR = Path(__file__).resolve().parent
-STORAGE_DIR = Path(os.environ.get("STORAGE_DIR", BASE_DIR / "storage"))
-LOOKUP_KEY = os.environ.get("LOOKUP_KEY", "dev-only-change-me").encode()
+BASE_DIR = config.BASE_DIR
+STORAGE_DIR = config.STORAGE_DIR
+LOOKUP_KEY = config.LOOKUP_KEY
 SESSION_HOURS = 24
 
 ALLOWED_FILES = {
@@ -36,7 +37,7 @@ app = Flask(
     static_folder=str(BASE_DIR.parent / "FE" / "static"),
 )
 app.config["MAX_CONTENT_LENGTH"] = 60 * 1024 * 1024
-app.config["DB_PATH"] = os.environ.get("DB_PATH", str(BASE_DIR / "mbanking.db"))
+app.config["DB_PATH"] = config.DB_PATH
 db.init_db(app)
 
 
@@ -257,4 +258,4 @@ def download_document(kind):
 
 
 if __name__ == "__main__":
-    app.run(debug=True, port=5000)
+   app.run(debug=config.DEBUG, port=5000)

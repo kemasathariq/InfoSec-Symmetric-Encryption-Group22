@@ -76,6 +76,16 @@ class Tamper(unittest.TestCase):
         finally:
             os.environ["MASTER_KEY"] = "test-master-key"
 
+    def test_master_key_required_in_production(self):
+        saved = os.environ.pop("MASTER_KEY", None)
+        os.environ["APP_ENV"] = "production"
+        try:
+            with self.assertRaises(RuntimeError):
+                ciphers.encrypt("aes", b"x", user_id=1, purpose="ktp")
+        finally:
+            os.environ.pop("APP_ENV", None)
+            if saved is not None:
+                os.environ["MASTER_KEY"] = saved
 
 class Layered(unittest.TestCase):
     LAYERS = ["aes+des+rc4", "rc4+des+aes", "aes+rc4"]
