@@ -170,7 +170,7 @@
       const title = document.createElement("strong");
       title.textContent = documentLabels[documentInfo.kind] || "Dokumen";
       const metadata = document.createElement("span");
-      metadata.textContent = `${documentInfo.original_name} · ${formatBytes(documentInfo.size)}`;
+      metadata.textContent = `${documentInfo.download_name} · ${formatBytes(documentInfo.size)}`;
       detail.append(title, metadata);
       info.append(icon, detail);
       const download = document.createElement("button");
@@ -198,7 +198,7 @@
       const url = URL.createObjectURL(blob);
       const anchor = document.createElement("a");
       anchor.href = url;
-      anchor.download = documentInfo.original_name;
+      anchor.download = documentInfo.download_name;
       document.body.append(anchor);
       anchor.click();
       anchor.remove();

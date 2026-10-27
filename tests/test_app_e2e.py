@@ -40,7 +40,8 @@ class E2E(unittest.TestCase):
             c = app.test_client()
             files = {"ktp": os.urandom(5000), "supporting_doc": os.urandom(30000),
                      "selfie_video": os.urandom(400000)}
-            names = {"ktp": "ktp.jpg", "supporting_doc": "slip.pdf", "selfie_video": "v.mp4"}
+            names = {"ktp": "KTP_Budi_Santoso.jpg", "supporting_doc": "Slip_Gaji_Budi.pdf",
+                     "selfie_video": "Selfie_Budi.mp4"}
             data = dict(FORM, **{k: (io.BytesIO(v), names[k]) for k, v in files.items()})
             r = c.post("/api/register", data=data, content_type="multipart/form-data")
             self.assertEqual(r.status_code, 201, r.json)
@@ -58,6 +59,15 @@ class E2E(unittest.TestCase):
                 raw_db = conn.execute("SELECT profile FROM users").fetchone()[0]
             self.assertNotIn(b"3578012345670001", raw_db)
             self.assertNotIn(b"Budi", raw_db)
+                        # the whole database file, including file names, has no name, NIK or email
+            db_bytes = Path(f"{tmp}/t.db").read_bytes()
+            for secret in (b"Budi", b"3578012345670001", b"budi@mail.com"):
+                self.assertNotIn(secret, db_bytes)
+            # downloads get a generic name, not the uploaded one
+            r = c.get("/api/me/documents/ktp", headers=h)
+            self.assertIn("ktp.jpg", r.headers["Content-Disposition"])
+            self.assertEqual({d["download_name"] for d in me["documents"]},
+                             {"ktp.jpg", "supporting_doc.pdf", "selfie_video.mp4"})
             for p in Path(f"{tmp}/st").rglob("*.bin"):
                 for k, v in files.items():
                     self.assertNotIn(v[:64], p.read_bytes())

@@ -181,9 +181,9 @@ def register():
             path.write_bytes(hooks.protect(data, user_id=uid, purpose=kind))
             written.append(path)
             conn.execute(
-                "INSERT INTO documents (user_id, kind, original_name, mime, path, size,"
+                "INSERT INTO documents (user_id, kind, ext, mime, path, size,"
                 " sha256, cipher, created_at) VALUES (?,?,?,?,?,?,?,?,?)",
-                (uid, kind, name, mimetypes.guess_type(name)[0] or "application/octet-stream",
+                (uid, kind, Path(name).suffix.lower(), mimetypes.guess_type(name)[0] or "application/octet-stream",
                  str(path), len(data), hashlib.sha256(data).hexdigest(),
                  hooks.cipher_for(kind), ts),
             )
@@ -232,7 +232,7 @@ def me():
     conn = db.get_db()
     u = conn.execute("SELECT * FROM users WHERE id=?", (g.user_id,)).fetchone()
     profile = json.loads(hooks.unprotect(u["profile"], user_id=u["id"], purpose="profile"))
-    docs = conn.execute("SELECT kind, original_name, mime, size, created_at "
+    docs = conn.execute("SELECT kind, kind || ext AS download_name, mime, size, created_at "
                         "FROM documents WHERE user_id=?", (g.user_id,)).fetchall()
     return jsonify({
         "profile": profile,
@@ -254,7 +254,7 @@ def download_document(kind):
     if hashlib.sha256(data).hexdigest() != row["sha256"]:
         return err("Integritas file gagal diverifikasi", 500)
     return send_file(io.BytesIO(data), mimetype=row["mime"],
-                     as_attachment=True, download_name=row["original_name"])
+                     as_attachment=True, download_name=row["kind"] + row["ext"])
 
 
 if __name__ == "__main__":

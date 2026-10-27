@@ -20,7 +20,7 @@ CREATE TABLE IF NOT EXISTS documents (
     id            INTEGER PRIMARY KEY AUTOINCREMENT,
     user_id       INTEGER NOT NULL REFERENCES users(id),
     kind          TEXT NOT NULL,          -- ktp | supporting_doc | selfie_video
-    original_name TEXT NOT NULL,
+    ext           TEXT NOT NULL,          -- file extension only (.jpg); the original file name is not stored
     mime          TEXT NOT NULL,
     path          TEXT NOT NULL,
     size          INTEGER NOT NULL,       -- ukuran file asli (plaintext)
