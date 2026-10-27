@@ -22,6 +22,7 @@ BASE_DIR = config.BASE_DIR
 STORAGE_DIR = config.STORAGE_DIR
 LOOKUP_KEY = config.LOOKUP_KEY
 SESSION_HOURS = 24
+DUMMY_HASH = generate_password_hash(secrets.token_hex(16))
 
 ALLOWED_FILES = {
     "ktp": {".jpg", ".jpeg", ".png", ".pdf"},
@@ -57,6 +58,14 @@ def lookup_hash(value: str) -> str:
 def err(message, status, **extra):
     return jsonify({"error": message, **extra}), status
 
+@app.errorhandler(413)
+def too_large(_e):
+    return err("Total ukuran unggahan melebihi batas 60 MB", 413)
+
+
+@app.errorhandler(500)
+def server_error(_e):
+    return err("Terjadi kesalahan di server", 500)
 
 @app.errorhandler(ciphers.IntegrityError)
 def integrity_failed(_e):
@@ -188,10 +197,13 @@ def register():
                  hooks.cipher_for(kind), ts),
             )
         conn.commit()
-    except Exception:
+    except Exception as e:
         conn.rollback()
         for p in written:
             p.unlink(missing_ok=True)
+        if isinstance(e, sqlite3.IntegrityError):
+            # Two sign-ups with the same email or NIK at the same moment: the UNIQUE constraint catches it.
+            return err("Email atau NIK sudah terdaftar", 409)
         raise
 
     account = conn.execute("SELECT account_number FROM users WHERE id=?", (uid,)).fetchone()
@@ -202,11 +214,13 @@ def register():
 @app.post("/api/login")
 def login():
     body = request.get_json(silent=True) or {}
-    email, password = str(body.get("email", "")).lower(), str(body.get("password", ""))
+    email, password = str(body.get("email", "")).strip().lower(), str(body.get("password", ""))
     conn = db.get_db()
+    conn.execute("DELETE FROM sessions WHERE expires_at<=?", (iso(now()),))
     user = conn.execute("SELECT id, password_hash FROM users WHERE email_lookup=?",
                         (lookup_hash(email),)).fetchone()
-    if not user or not check_password_hash(user["password_hash"], password):
+    hash_to_check = user["password_hash"] if user else DUMMY_HASH
+    if not check_password_hash(hash_to_check, password) or not user:
         return err("Email atau password salah", 401)
 
     token = secrets.token_urlsafe(32)

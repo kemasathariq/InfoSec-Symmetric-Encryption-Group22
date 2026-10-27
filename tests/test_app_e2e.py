@@ -108,6 +108,27 @@ class E2E(unittest.TestCase):
                     importlib.import_module("App")
         os.environ.update(MASTER_KEY="e2e", LOOKUP_KEY="e2e-lookup")
 
+    def test_errors_are_json_and_sessions_cleaned(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            mod = load_app(None, tmp)
+            c = mod.app.test_client()
+            big = {"ktp": (io.BytesIO(b"x" * (61 * 1024 * 1024)), "k.jpg")}
+            r = c.post("/api/register", data=dict(FORM, **big), content_type="multipart/form-data")
+            self.assertEqual((r.status_code, r.is_json), (413, True))
+            files = {k: (io.BytesIO(os.urandom(100)), n) for k, n in
+                     (("ktp", "k.jpg"), ("supporting_doc", "s.pdf"), ("selfie_video", "v.mp4"))}
+            self.assertEqual(c.post("/api/register", data=dict(FORM, **files),
+                                    content_type="multipart/form-data").status_code, 201)
+            with closing(sqlite3.connect(f"{tmp}/t.db")) as conn:
+                conn.execute("INSERT INTO sessions VALUES ('old', 1, '2000-01-01T00:00:00+00:00')")
+                conn.commit()
+            r = c.post("/api/login", json={"email": "  BUDI@mail.com ", "password": "rahasia123"})
+            self.assertEqual(r.status_code, 200)
+            with closing(sqlite3.connect(f"{tmp}/t.db")) as conn:
+                self.assertEqual(conn.execute("SELECT COUNT(*) FROM sessions WHERE token_hash='old'").fetchone()[0], 0)
+            r = c.post("/api/login", json={"email": "nobody@mail.com", "password": "rahasia123"})
+            self.assertEqual(r.status_code, 401)
+
     def test_layered(self): self.run_cipher("layered")
     def test_aes(self): self.run_cipher("aes")
     def test_des(self): self.run_cipher("des")
