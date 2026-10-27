@@ -141,12 +141,6 @@ def new_account_number(conn):
 def index():
     return render_template("index.html")
 
-
-@app.get("/lumio")
-def lumio():
-    return render_template("lumio.html")
-
-
 @app.get("/api/health")
 def health():
     return jsonify({"status": "ok"})
